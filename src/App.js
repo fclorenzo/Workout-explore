@@ -20,16 +20,18 @@ const App = () => {
         const categoryData = await categoryResponse.json();
         setCategories(categoryData.results);
 
-        // Fetch exercises
-        const workoutResponse = await fetch("https://wger.de/api/v2/exercise/");
+        // Fetch exercises (with exercise info)
+        const workoutResponse = await fetch("https://wger.de/api/v2/exerciseinfo/");
         const workoutData = await workoutResponse.json();
-        // Filter out workouts that are missing category information
-        const workoutsWithImages = workoutData.results.map(workout => ({
+        
+        // Enrich exercises with category info
+        const enrichedWorkouts = workoutData.results.map(workout => ({
           ...workout,
-          image: workout.image || "default_image_url_here", // Ensure you have a fallback image if none exists
+          category: workout.category // Directly pulling category object from exerciseinfo
         }));
-        setWorkouts(workoutsWithImages);
-        setFilteredWorkouts(workoutsWithImages);
+
+        setWorkouts(enrichedWorkouts);
+        setFilteredWorkouts(enrichedWorkouts);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -45,9 +47,7 @@ const App = () => {
 
     if (selectedCategoryId) {
       setFilteredWorkouts(
-        workouts.filter(workout =>
-          workout.category === parseInt(selectedCategoryId) // Compare workout's category ID with the selected category ID
-        )
+        workouts.filter(workout => workout.category.id === parseInt(selectedCategoryId))
       );
     } else {
       setFilteredWorkouts(workouts); // If no category is selected, show all workouts
@@ -85,8 +85,8 @@ const App = () => {
         {filteredWorkouts.map(workout => (
           <div key={workout.id} className="workout-card" role="region" aria-labelledby={`workout-${workout.id}`}>
             <h3 id={`workout-${workout.id}`}>{workout.name}</h3>
-            <p>{workout.description || "No description available"}</p>
-            {workout.image && <img src={workout.image} alt={workout.name} />}
+            <p>{workout.translations ? workout.translations[0].description : "No description available"}</p>
+            {workout.images.length > 0 && <img src={workout.images[0].image} alt={workout.name} />}
             <button 
               onClick={() => handleFavoriteToggle(workout)}
               aria-label={favorites.some(fav => fav.id === workout.id) ? "Remove from favorites" : "Add to favorites"}
@@ -102,8 +102,8 @@ const App = () => {
         {favorites.map(fav => (
           <div key={fav.id} className="workout-card" role="region" aria-labelledby={`favorite-${fav.id}`}>
             <h3 id={`favorite-${fav.id}`}>{fav.name}</h3>
-            <p>{fav.description || "No description available"}</p>
-            {fav.image && <img src={fav.image} alt={fav.name} />}
+            <p>{fav.translations ? fav.translations[0].description : "No description available"}</p>
+            {fav.images.length > 0 && <img src={fav.images[0].image} alt={fav.name} />}
             <button 
               onClick={() => handleFavoriteToggle(fav)}
               aria-label="Remove from favorites"
