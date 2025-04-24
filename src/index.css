@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-white text-gray-900; /* Tailwind base colors */
+}
+
+code {
+  @apply font-mono; /* Use Tailwind's monospace font utility */
+}
+
+h1 {
+  @apply text-2xl font-bold; /* Tailwind heading styles */
+}
+
+h2 {
+  @apply text-xl font-semibold; /* Tailwind heading styles */
+}
+
+h3 {
+  @apply text-lg font-medium; /* Tailwind heading styles */
+}
+
+h4 {
+  @apply text-base font-normal; /* Tailwind heading styles */
+}
+
+p {
+  @apply mb-4; /* Tailwind margin utility */
+}
+
+a {
+  @apply text-blue-600 hover:text-blue-800; /* Tailwind link styles */
+}
+
+ul {
+  @apply list-disc pl-5; /* Tailwind list styles */
+}
+
+li {
+  @apply mb-2; /* Tailwind list item margin */
+}
+
+blockquote {
+  @apply border-l-4 pl-4 italic text-gray-600; /* Tailwind blockquote styles */
+}
+
+img {
+  @apply max-w-full h-auto; /* Tailwind image styles */
+}
