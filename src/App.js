@@ -1,120 +1,136 @@
 import React, { useState, useEffect } from "react";
-import './App.css';
+import "./App.css";
 
-const App = () => {
-  const [workouts, setWorkouts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [filteredWorkouts, setFilteredWorkouts] = useState([]);
-  const [favorites, setFavorites] = useState(() => {
-    const savedFavorites = localStorage.getItem("favorites");
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
+const EX_INFO_BASE  = "https://wger.de/api/v2/exerciseinfo/";
+const IMG_ENDPOINT  = "https://wger.de/api/v2/exerciseimage/";
+const CAT_ENDPOINT  = "https://wger.de/api/v2/exercisecategory/?limit=100";
+const LANG_ENDPOINT = "https://wger.de/api/v2/language/?limit=100";
+
+/* fetch ONE main image for a given exercise id */
+async function getMainImage(exId) {
+  const url = `${IMG_ENDPOINT}?exercise=${exId}&is_main=True&limit=1`;
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.results[0]?.image || null; // null if none
+}
+
+export default function App() {
+  /* ---------- state ---------- */
+  const [categories, setCategories]         = useState([]);
+  const [languages,  setLanguages]          = useState([]);
+  const [selectedCategory, setSelectedCat]  = useState("");
+  const [selectedLanguage, setSelectedLang] = useState("");
+  const [workouts, setWorkouts]             = useState([]);
+  const [favorites, setFavorites]           = useState(() => {
+    const saved = localStorage.getItem("favorites");
+    return saved ? JSON.parse(saved) : [];
   });
-  const [selectedCategory, setSelectedCategory] = useState("");
 
-  // Fetch categories and workouts from the Wger API
+  /* ---------- fetch dropdown data once ---------- */
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch categories
-        const categoryResponse = await fetch("https://wger.de/api/v2/exercisecategory/");
-        const categoryData = await categoryResponse.json();
-        setCategories(categoryData.results);
-
-        // Fetch exercises (with exercise info)
-        const workoutResponse = await fetch("https://wger.de/api/v2/exerciseinfo/");
-        const workoutData = await workoutResponse.json();
-        
-        // Enrich exercises with category info
-        const enrichedWorkouts = workoutData.results.map(workout => ({
-          ...workout,
-          category: workout.category // Directly pulling category object from exerciseinfo
-        }));
-
-        setWorkouts(enrichedWorkouts);
-        setFilteredWorkouts(enrichedWorkouts);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
+    (async () => {
+      const [catRes, langRes] = await Promise.all([
+        fetch(CAT_ENDPOINT).then(r => r.json()),
+        fetch(LANG_ENDPOINT).then(r => r.json())
+      ]);
+      setCategories(catRes.results);
+      setLanguages(langRes.results);
+    })();
   }, []);
 
-  // Handle category filtering
-  const handleCategoryChange = (event) => {
-    const selectedCategoryId = event.target.value;
-    setSelectedCategory(selectedCategoryId);
+  /* ---------- fetch exercises whenever filters change ---------- */
+  useEffect(() => {
+    const fetchExercises = async () => {
+      let url = EX_INFO_BASE + "?limit=200";
+      if (selectedLanguage) url += `&language=${selectedLanguage}`;
+      if (selectedCategory) url += `&category=${selectedCategory}`;
 
-    if (selectedCategoryId) {
-      setFilteredWorkouts(
-        workouts.filter(workout => workout.category.id === parseInt(selectedCategoryId))
+      const res  = await fetch(url);
+      const data = await res.json();
+
+      /* enrich each exercise with a reliable main image */
+      const enriched = await Promise.all(
+        data.results.map(async ex => {
+          const apiImg = await getMainImage(ex.id);       // always ask the image endpoint
+          const img    = apiImg || ex.images[0]?.image || 
+                         "https://via.placeholder.com/150";
+          return { ...ex, image: img };
+        })
       );
-    } else {
-      setFilteredWorkouts(workouts); // If no category is selected, show all workouts
-    }
+      setWorkouts(enriched);
+    };
+
+    fetchExercises();
+  }, [selectedLanguage, selectedCategory]);
+
+  /* ---------- handlers ---------- */
+  const toggleFavorite = (ex) => {
+    const isFav = favorites.some(f => f.id === ex.id);
+    const updated = isFav
+      ? favorites.filter(f => f.id !== ex.id)
+      : [...favorites, ex];
+    setFavorites(updated);
+    localStorage.setItem("favorites", JSON.stringify(updated));
   };
 
-  // Add or remove workout from favorites
-  const handleFavoriteToggle = (workout) => {
-    const isFavorite = favorites.some(fav => fav.id === workout.id);
-    const updatedFavorites = isFavorite
-      ? favorites.filter(fav => fav.id !== workout.id)
-      : [...favorites, workout];
+  /* ---------- reusable card ---------- */
+  const ExerciseCard = ({ ex, isFavList = false }) => (
+    <div className="workout-card">
+      <h3>{ex.name}</h3>
+      {ex.image && <img src={ex.image} alt={ex.name} />}
+      <p
+        dangerouslySetInnerHTML={{
+          __html: ex.translations?.[0]?.description || "No description"
+        }}
+      />
+      <button onClick={() => toggleFavorite(ex)}>
+        {isFavList ? "Remove" : favorites.some(f => f.id === ex.id) ? "★ Remove" : "☆ Add"}
+      </button>
+    </div>
+  );
 
-    setFavorites(updatedFavorites);
-    localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-  };
-
+  /* ---------- render ---------- */
   return (
     <div className="App">
       <h1>Workout Explorer</h1>
 
+      {/* filters */}
       <div className="filters">
-        <label htmlFor="category">Filter by Category: </label>
-        <select id="category" value={selectedCategory} onChange={handleCategoryChange}>
+        {/* language */}
+        <label htmlFor="lang">Language&nbsp;</label>
+        <select id="lang" value={selectedLanguage}
+                onChange={e => setSelectedLang(e.target.value)}>
           <option value="">All</option>
-          {categories.map(category => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
+          {languages.map(l => (
+            <option key={l.id} value={l.id}>{l.full_name_en}</option>
+          ))}
+        </select>
+
+        {/* category */}
+        <label htmlFor="cat" style={{ marginLeft: "1rem" }}>Category&nbsp;</label>
+        <select id="cat" value={selectedCategory}
+                onChange={e => setSelectedCat(e.target.value)}>
+          <option value="">All</option>
+          {categories.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
       </div>
 
+      {/* main list */}
       <div className="workout-list">
-        {filteredWorkouts.map(workout => (
-          <div key={workout.id} className="workout-card" role="region" aria-labelledby={`workout-${workout.id}`}>
-            <h3 id={`workout-${workout.id}`}>{workout.name}</h3>
-            <p>{workout.translations ? workout.translations[0].description : "No description available"}</p>
-            {workout.images.length > 0 && <img src={workout.images[0].image} alt={workout.name} />}
-            <button 
-              onClick={() => handleFavoriteToggle(workout)}
-              aria-label={favorites.some(fav => fav.id === workout.id) ? "Remove from favorites" : "Add to favorites"}
-            >
-              {favorites.some(fav => fav.id === workout.id) ? "Remove from Favorites" : "Add to Favorites"}
-            </button>
-          </div>
+        {workouts.map(ex => (
+          <ExerciseCard key={ex.id} ex={ex} />
         ))}
       </div>
 
-      <h2>Favorite Workouts</h2>
+      {/* favorites */}
+      <h2>Favorites</h2>
       <div className="workout-list">
-        {favorites.map(fav => (
-          <div key={fav.id} className="workout-card" role="region" aria-labelledby={`favorite-${fav.id}`}>
-            <h3 id={`favorite-${fav.id}`}>{fav.name}</h3>
-            <p>{fav.translations ? fav.translations[0].description : "No description available"}</p>
-            {fav.images.length > 0 && <img src={fav.images[0].image} alt={fav.name} />}
-            <button 
-              onClick={() => handleFavoriteToggle(fav)}
-              aria-label="Remove from favorites"
-            >
-              Remove from Favorites
-            </button>
-          </div>
+        {favorites.map(ex => (
+          <ExerciseCard key={ex.id} ex={ex} isFavList />
         ))}
       </div>
     </div>
   );
-};
-
-export default App;
+}
