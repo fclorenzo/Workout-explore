@@ -77,7 +77,7 @@ export default function App() {
   const ExerciseCard = ({ ex, isFavList = false }) => (
     <div className="workout-card">
       <h3>{ex.name}</h3>
-      {ex.image && <img src={ex.image} alt={ex.name} />}
+      {ex.image && <img src={ex.image} alt={"Image"} />}
       <p
         dangerouslySetInnerHTML={{
           __html: ex.translations?.[0]?.description || "No description"
