@@ -1,70 +1,38 @@
-# Getting Started with Create React App
+# Workout-explore
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![Screenshot](<https://imgur.com/a/oFKjSmL>)
 
-## Available Scripts
+Acesso: <https://workout-explore.netlify.app/>
 
-In the project directory, you can run:
+## Desenvolvedor(a)
 
-### `npm start`
+Lorenzo Comunello (Sistemas de Informação)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Descrição
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Conteúdo
 
-### `npm test`
+O site permite que os usuários explorem diferentes treinos, filtrando por idioma e músculos para encontrar vários tipos de exercícios. Também mostra imagems e uma aba de favoritos para salvar os treinos.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Código: Utilização de React para as interfaces, API (<https://wger.de/pt-br/software/features>) para armazenar e mostrar treinos. Estilos responsivos e interativos com Tailwind CSS.
 
-### `npm run build`
+### Desenvolvimento
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Tecnologias
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- React
+- HTML e CSS
+- Tailwind
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Ambiente de desenvolvimento
 
-### `npm run eject`
+- VS Code + Extensions React & Live Server
+- GitHub
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Referências e créditos
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- GPT: AI driven development, com a IA ajudando a planejar aspectos do projeto como tech stack, hosting e próximas etapas
+- Documentação da API Wger <https://wger.de/en/software/api>
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+Projeto entregue para a disciplina de [Desenvolvimento de Software para a Web](http://github.com/andreainfufsm/elc1090-2025a) em 2025a
