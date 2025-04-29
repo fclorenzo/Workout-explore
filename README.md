@@ -1,6 +1,6 @@
 # Workout-explore
 
-![Screenshot](<https://imgur.com/a/oFKjSmL>)
+![Screenshot](<https://github.com/fclorenzo/Workout-explore/blob/main/Screenshot.png?raw=true>)
 
 Acesso: <https://workout-explore.netlify.app/>
 
