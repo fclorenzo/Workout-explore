@@ -8,10 +8,10 @@ const LANG_ENDPOINT = "https://wger.de/api/v2/language/?limit=100";
 
 /* fetch ONE main image for a given exercise id */
 async function getMainImage(exId) {
-  const url = `${IMG_ENDPOINT}?exercise=${exId}&is_main=True&limit=1`;
-  const res = await fetch(url);
-  const json = await res.json();
-  return json.results[0]?.image || null; // null if none
+  const url  = `${IMG_ENDPOINT}?exercise=${exId}&is_main=True&limit=1`;
+  const res  = await fetch(url);
+  const data = await res.json();
+  return data.results[0]?.image || null;   // null if none
 }
 
 export default function App() {
@@ -26,7 +26,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  /* ---------- fetch dropdown data once ---------- */
+  /* ---------- dropdown data ---------- */
   useEffect(() => {
     (async () => {
       const [catRes, langRes] = await Promise.all([
@@ -38,9 +38,10 @@ export default function App() {
     })();
   }, []);
 
-  /* ---------- fetch exercises whenever filters change ---------- */
+  /* ---------- exercises (refetch on filter change) ---------- */
   useEffect(() => {
     const fetchExercises = async () => {
+      /* build URL with server filters */
       let url = EX_INFO_BASE + "?limit=200";
       if (selectedLanguage) url += `&language=${selectedLanguage}`;
       if (selectedCategory) url += `&category=${selectedCategory}`;
@@ -48,24 +49,34 @@ export default function App() {
       const res  = await fetch(url);
       const data = await res.json();
 
-      /* enrich each exercise with a reliable main image */
+      /* OPTIONAL client-side language filter (guaranteed) */
+      const langId = selectedLanguage ? parseInt(selectedLanguage) : null;
+      let list     = data.results;
+      if (langId) {
+        list = list.filter(ex =>
+          ex.translations?.some(t => t.language === langId)
+        );
+      }
+
+      /* enrich with image */
       const enriched = await Promise.all(
-        data.results.map(async ex => {
-          const apiImg = await getMainImage(ex.id);       // always ask the image endpoint
-          const img    = apiImg || ex.images[0]?.image || 
+        list.map(async ex => {
+          const apiImg = await getMainImage(ex.id);
+          const img    = apiImg || ex.images[0]?.image ||
                          "https://via.placeholder.com/150";
           return { ...ex, image: img };
         })
       );
+
       setWorkouts(enriched);
     };
 
     fetchExercises();
   }, [selectedLanguage, selectedCategory]);
 
-  /* ---------- handlers ---------- */
-  const toggleFavorite = (ex) => {
-    const isFav = favorites.some(f => f.id === ex.id);
+  /* ---------- helpers ---------- */
+  const toggleFavorite = ex => {
+    const isFav   = favorites.some(f => f.id === ex.id);
     const updated = isFav
       ? favorites.filter(f => f.id !== ex.id)
       : [...favorites, ex];
@@ -73,18 +84,27 @@ export default function App() {
     localStorage.setItem("favorites", JSON.stringify(updated));
   };
 
+  /* pick the right translation text for a card */
+  const getDescription = (ex) => {
+    const langId = selectedLanguage ? parseInt(selectedLanguage) : null;
+    const t      = langId
+      ? ex.translations?.find(tr => tr.language === langId)
+      : ex.translations?.[0];
+    return t?.description || "No description";
+  };
+
   /* ---------- reusable card ---------- */
   const ExerciseCard = ({ ex, isFavList = false }) => (
     <div className="workout-card">
       <h3>{ex.name}</h3>
       {ex.image && <img src={ex.image} alt={"Image"} />}
-      <p
-        dangerouslySetInnerHTML={{
-          __html: ex.translations?.[0]?.description || "No description"
-        }}
-      />
+      <p dangerouslySetInnerHTML={{ __html: getDescription(ex) }} />
       <button onClick={() => toggleFavorite(ex)}>
-        {isFavList ? "Remove" : favorites.some(f => f.id === ex.id) ? "★ Remove" : "☆ Add"}
+        {isFavList
+          ? "Remove"
+          : favorites.some(f => f.id === ex.id)
+            ? "★ Remove"
+            : "☆ Add"}
       </button>
     </div>
   );
