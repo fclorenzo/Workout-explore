@@ -1,6 +1,0 @@
-npx create-react-app workout-explore 
-cd workout-explore
-npm install -D tailwindcss@3 
-npx tailwindcss init
-
-these are the commands i ran, and just so you know, the issue was because npm was installing tailwindcssv4, which you probably didn't know was a thing, and v4 changes a lot of things, so i installed v3 instead. anyway, i have this repo now, which is attached
